@@ -1,0 +1,59 @@
+# This is a basic workflow to help automatically update the version of the branch
+name: Update Versioning
+# Controls when the workflow will run
+on: push
+# Permissions that the job has
+permissions:
+  actions: read
+  contents: write
+  pull-requests: write
+  statuses: read
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This first job gets the content from the last push request
+  check-commit-message:
+      name: check_commit_message
+      runs-on: ubuntu-latest
+      outputs:
+        head-commit-message: ${{ steps.get_head_commit_message.outputs.headCommitMsg }}
+      steps:
+        - name: Get repo
+          uses: actions/checkout@v4
+          with:
+            ref: ${{ github.event.pull_request.head.sha }}
+        - name: Print head git commit message
+          id: get_head_commit_message
+          run: echo "::set-output name=headCommitMsg::$(git show -s --format=%s)"
+
+  update-semantic-version:
+    # This job will update the semantic version of the branch
+    name: update_semantic_version
+    runs-on: ubuntu-latest
+    needs: check-commit-message
+    if: ${{ !contains(needs.check-commit-message.outputs.head-commit-message, '[#ignore]') }}
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+
+      # Sets up python on the GitHub Server
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      # Used to install the requirements
+      - name: Install dependencies
+        run: pip install git+https://github.com/vegastyle/vega-packaging.git@v0.1.0
+
+      - name: Run script
+        run: update_semantic_version --message "${{needs.check-commit-message.outputs.head-commit-message}}" --changelog_path CHANGELOG.md --pyproject_path pyproject.toml --set_git_env
+
+      - uses: stefanzweifel/git-auto-commit-action@v5.0.1
+        with:
+          commit_message: Updating Packaging Files and tagging #ignore
+          with:
+            tagging_message: v$SEMANTIC_VERSION
