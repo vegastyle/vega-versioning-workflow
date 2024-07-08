@@ -13,18 +13,18 @@ permissions:
 jobs:
   # This first job gets the content from the last push request
   check-commit-message:
-      name: check_commit_message
-      runs-on: ubuntu-latest
-      outputs:
-        head-commit-message: ${{ steps.get_head_commit_message.outputs.headCommitMsg }}
-      steps:
-        - name: Get repo
-          uses: actions/checkout@v4
-          with:
-            ref: ${{ github.event.pull_request.head.sha }}
-        - name: Print head git commit message
-          id: get_head_commit_message
-          run: echo "::set-output name=headCommitMsg::$(git show -s --format=%s)"
+    name: check_commit_message
+    runs-on: ubuntu-latest
+    outputs:
+      head-commit-message: ${{ steps.get_head_commit_message.outputs.headCommitMsg }}
+    steps:
+      - name: Get repo
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Print head git commit message
+        id: get_head_commit_message
+        run: echo "::set-output name=headCommitMsg::$(git show -s --format=%s)"
 
   update-semantic-version:
     # This job will update the semantic version of the branch
@@ -55,5 +55,4 @@ jobs:
       - uses: stefanzweifel/git-auto-commit-action@v5.0.1
         with:
           commit_message: Updating Packaging Files and tagging #ignore
-          with:
-            tagging_message: v${{ env.SEMANTIC_VERSION }}
+          tagging_message: 'v${{ env.SEMANTIC_VERSION }}'
