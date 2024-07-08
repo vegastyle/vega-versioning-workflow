@@ -8,6 +8,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 
+## [1.1.2] - 2024/07/08 15:39:22
+
+### Fixed
+
+- fixed example in README.md to include required permissions by the workflow.
+
+
 ## [1.1.1] - 2024/07/08 07:43:59
 
 ### Changed
