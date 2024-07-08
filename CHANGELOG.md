@@ -8,6 +8,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 
+## [1.0.0] - 2024/07/08 06:02:43
+
+### Changed
+
+- updated information of the README.md
+
+### Fixed
+
+- removed extra content in the CHANGELOG.md
+
+
 ## [0.0.2] - 2024/07/08 04:43:41
 
 ### Added
@@ -24,3 +35,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - fixed usage of curly brackets to round brackets
+## [1.0.0] - 2024/07/08 06:02:43
+
+### Changed
+
+- updated information of the README.md
+
+### Fixed
+
+- removed extra content in the CHANGELOG.md
+
+
