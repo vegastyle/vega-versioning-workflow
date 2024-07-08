@@ -8,6 +8,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 
+## [1.1.0] - 2024/07/08 07:15:40
+
+### Changed
+
+- switching vega-packaging to grab version 0.3.0 which includes a fix for how the CHANGELOG.md was getting incorrectly formatted
+
+
+## [1.1.0] - 2024/07/08 07:15:40
+
+### Changed
+
+- switching vega-packaging to grab version 0.3.0 which includes a fix for how the CHANGELOG.md was getting incorrectly formatted
+
+
 ## [1.0.0] - 2024/07/08 06:02:43
 
 ### Changed
