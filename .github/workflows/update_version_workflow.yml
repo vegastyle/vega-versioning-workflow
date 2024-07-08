@@ -24,7 +24,7 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha }}
       - name: Print head git commit message
         id: get_head_commit_message
-        run: echo "::set-output name=headCommitMsg::$(git show -s --format=%s)"
+        run:  echo "headCommitMsg=${{git show -s --format=%s}}" >> $GITHUB_OUTPUT
 
   update-semantic-version:
     # This job will update the semantic version of the branch
@@ -50,7 +50,7 @@ jobs:
         run: pip install git+https://github.com/vegastyle/vega-packaging.git@v0.2.0
 
       - name: Run script
-        run: update_semantic_version --message "${{needs.check-commit-message.outputs.head-commit-message}}" --changelog_path CHANGELOG.md --pyproject_path pyproject.toml --set_git_env
+        run: update_semantic_version --message "${{needs.check-commit-message.outputs.head-commit-message}}" --changelog_path CHANGELOG.md --pyproject_path pyproject.toml --github_env
 
       - uses: stefanzweifel/git-auto-commit-action@v5.0.1
         with:
