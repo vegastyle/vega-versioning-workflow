@@ -23,10 +23,16 @@ Follow the instructions on [How to Setup Reusable Workflows](https://docs.github
 ### Example
 A simple example of a workflow on 
 ```yaml
-name: Workflows to call when push command is detecte on the repo
+name: Workflows to call when push command is detected on the repo
 
 on: push
 
+permissions:
+  actions: read
+  contents: write
+  pull-requests: write
+  statuses: read
+  
 jobs:
   update-semantic_version:
     uses: vegastyle/vega-versioning-workflow/.github/workflows/update_version_workflow.yml@v0.0.2
