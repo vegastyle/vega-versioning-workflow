@@ -8,10 +8,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 
+## [0.0.2] - 2024/07/08 04:43:41
+
+### Added
+
+- Added workflow_call flag so that this workflow can be reused in other repositories
+
+### Changed
+
+- Changed the message of the commit that submits the changes made by the workflow
+
+
 ## [0.0.1] - 2024/07/08 04:12:47
 
 ### Fixed
 
 - fixed usage of curly brackets to round brackets
+
+
+
+## [0.0.2] - 2024/07/08 04:43:41
+
+### Added
+
+- Added workflow_call flag so that this workflow can be reused in other repositories
+
+### Changed
+
+- Changed the message of the commit that submits the changes made by the workflow
 
 
