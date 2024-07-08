@@ -1,7 +1,8 @@
-# This is a basic workflow to help automatically update the version of the branch
+# This is a basic workflow to help automatically update the version of the branch and associated packaging files
 name: Update Versioning
 # Controls when the workflow will run
-on: push
+on: [push, workflow_call]
+
 # Permissions that the job has
 permissions:
   actions: read
@@ -54,5 +55,5 @@ jobs:
 
       - uses: stefanzweifel/git-auto-commit-action@v5.0.1
         with:
-          commit_message: Updating Packaging Files and tagging #ignore
+          commit_message: 'Updating Packaging Files and Label to v${{ env.SEMANTIC_VERSION }}'
           tagging_message: 'v${{ env.SEMANTIC_VERSION }}'
