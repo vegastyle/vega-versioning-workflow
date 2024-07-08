@@ -1,18 +1,33 @@
 # vega-versioning-workflow
-> A simple workflow that updates the semantic version of a push commit based on the hashtags included in the message.
+> A simple workflow that updates the semantic version of packaging related files and the label on a push commit based on 
+> the hashtags included in the commit message.
 
-The changelog format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+## About 
+This workflow leverages the [vega-packaging](https://github.com/vegastyle/vega-packaging) **update_semantic_version** cli command to update the semantic version of 
+a repository based on packaging related files that it has.
 
-This workflow uses the update_semantic_version cli from vega-package to update packaging related files on the root of 
-the repository.
+It will also update the semantic version of those same files match, so they match and update the label as well.
 
-## Steps
-These are the steps that the workflow takes
+## Features
+Version 0.1.0 of this workflow uses [vega-packaging](https://github.com/vegastyle/vega-packaging)v0.2.0 .
 
-* Checks the commit message
-* Obtains the current semantic version from the **pyproject.toml** if available or the **CHANGELOG.md** file .
-  * *Note:* When using a pyproject.toml file, a semantic version is expected to be found. 
-  * The pyproject.toml file will be ignored if the value is set to dynamic
-* The CHANGELOG.md file is created or updated with the commit message
-* The new commit is tagged with the semantic version
+When ran it will perform the following operations: 
+1. Update the semantic revision of the pyproject.toml file if available
+2. Update CHANGELOG.md with the contents from the commit message and the latest semantic revision. Creates the file if
+it doesn't exist.
+3. Adds a semantic version label to the new commit with the updated files.  
+
+## How To Use
+Follow the instructions on [How to Setup Reusable Workflows](https://docs.github.com/en/actions/using-workflows/reusing-workflows#calling-a-reusable-workflow).
+
+### Example
+A simple example of a workflow on 
+```yaml
+name: Workflows to call when push command is detecte on the repo
+
+on: push
+
+jobs:
+  update-semantic_version:
+    uses: vegastyle/vega-versioning-workflow/.github/workflows/update_version_workflow.yml@v0.0.2
+```
