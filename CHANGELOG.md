@@ -8,6 +8,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 
+## [1.1.3] - 2024/07/24 01:18:48
+
+### Changed
+
+- updating vega-packaging version and adding usage of the verbose flag
+
+
 ## [1.1.2] - 2024/07/08 15:39:22
 
 ### Fixed
