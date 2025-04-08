@@ -48,10 +48,10 @@ jobs:
 
       # Used to install the requirements
       - name: Install dependencies
-        run: pip install git+https://github.com/vegastyle/vega-packaging.git@v0.4.1
+        run: pip install git+https://github.com/vegastyle/vega-packaging.git@v0.5.0
 
       - name: Run script
-        run: update_semantic_version --message "${{needs.check-commit-message.outputs.head-commit-message}}" --changelog_path CHANGELOG.md --pyproject_path pyproject.toml --github_env --verbose
+        run: update_semantic_version --message "${{needs.check-commit-message.outputs.head-commit-message}}" --changelog_path CHANGELOG.md --pyproject_path pyproject.toml --react_package_path package.json --github_env --verbose
 
       - uses: stefanzweifel/git-auto-commit-action@v5.0.1
         with:
