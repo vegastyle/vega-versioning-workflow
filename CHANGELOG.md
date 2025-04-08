@@ -8,6 +8,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 
+## [1.2.0] - 2025/04/08 17:22:11
+
+### Changed
+
+- updating vega-packaging version to 0.5.0 to add support for react packages.
+
+
 ## [1.1.4] - 2024/07/24 01:45:48
 
 ### Changed
