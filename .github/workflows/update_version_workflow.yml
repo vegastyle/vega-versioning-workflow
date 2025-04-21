@@ -26,10 +26,16 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha }}
       - name: Print head git commit message title
         id: get_head_commit_subject
-        run:  echo "subject=$(git log -1 --pretty=%s)" >> $GITHUB_OUTPUT
+        run:  |
+          echo "description<<EOF" >> $GITHUB_OUTPUT
+          git log -1 --pretty=%s >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
       - name: Print head git commit message body
         id: get_head_commit_description
-        run:  echo "description=$(git log -1 --pretty=%b)" >> $GITHUB_OUTPUT
+        run:  |
+          echo "description<<EOF" >> $GITHUB_OUTPUT
+          git log -1 --pretty=%b >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
         
 
   update-semantic-version:
