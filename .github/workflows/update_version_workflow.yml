@@ -17,17 +17,18 @@ jobs:
     name: check_commit_message
     runs-on: ubuntu-latest
     outputs:
-      head-commit-message: ${{ steps.get_head_commit_subject.outputs.subject }}
+      head-commit-subject: ${{ steps.get_head_commit_subject.outputs.subject }}
       head-commit-description: ${{ steps.get_head_commit_description.outputs.description }}
     steps:
       - name: Get repo
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0 
       - name: Print head git commit message title
         id: get_head_commit_subject
         run:  |
-          echo "description<<EOF" >> $GITHUB_OUTPUT
+          echo "subject<<EOF" >> $GITHUB_OUTPUT
           git log -1 --pretty=%s >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
       - name: Print head git commit message body
