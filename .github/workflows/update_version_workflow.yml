@@ -59,7 +59,7 @@ jobs:
 
       # Used to install the requirements
       - name: Install dependencies
-        run: pip install git+https://github.com/vegastyle/vega-packaging.git@v0.6.1
+        run: pip install git+https://github.com/vegastyle/vega-packaging.git@v0.6.2
 
       - name: Run script
         run: update_semantic_version --subject "${{needs.check-commit-message.outputs.head-commit-subject}}" --description "${{needs.check-commit-message.outputs.head-commit-description}}" --changelog_path CHANGELOG.md --pyproject_path pyproject.toml --react_package_path package.json --github_env --verbose
