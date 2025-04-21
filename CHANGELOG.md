@@ -8,6 +8,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 
+## [1.3.0] - 2025/04/21 16:54:45
+
+### Fixed
+
+- adding full log depth for git log
+
+
 ## [1.2.0] - 2025/04/08 17:22:11
 
 ### Changed
