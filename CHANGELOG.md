@@ -8,6 +8,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 
+## [1.4.0] - 2026/02/26 13:10:18
+
+### Changed
+
+- the workflow to get all the commits from a single push rather than just the latest commit on a push.
+
+
 ## [1.3.0] - 2025/04/21 16:54:45
 
 ### Fixed
