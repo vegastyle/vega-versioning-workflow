@@ -27,15 +27,27 @@ jobs:
           fetch-depth: 0 
       - name: Print head git commit message title
         id: get_head_commit_subject
-        run:  |
+        run: |
           echo "subject<<EOF" >> $GITHUB_OUTPUT
-          git log -1 --pretty=%s >> $GITHUB_OUTPUT
+          if [ "${{ github.event.before }}" = "0000000000000000000000000000000000000000" ]; then
+            # New branch - just get the current commit
+            git log -1 --pretty=%s >> $GITHUB_OUTPUT
+          else
+            # Get all commit subjects in this push
+            git log --pretty=%s ${{ github.event.before }}..${{ github.event.after }} >> $GITHUB_OUTPUT
+          fi
           echo "EOF" >> $GITHUB_OUTPUT
       - name: Print head git commit message body
         id: get_head_commit_description
-        run:  |
+        run: |
           echo "description<<EOF" >> $GITHUB_OUTPUT
-          git log -1 --pretty=%b >> $GITHUB_OUTPUT
+          if [ "${{ github.event.before }}" = "0000000000000000000000000000000000000000" ]; then
+            # New branch - just get the current commit
+            git log -1 --pretty=%b >> $GITHUB_OUTPUT
+          else
+            # Get all commit bodies in this push
+            git log --pretty=%b ${{ github.event.before }}..${{ github.event.after }} >> $GITHUB_OUTPUT
+          fi
           echo "EOF" >> $GITHUB_OUTPUT
         
 
