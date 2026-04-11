@@ -1,0 +1,127 @@
+name: Bump, Build, and Publish
+
+on:
+  push:
+  workflow_call:
+    inputs:
+      pypi_registry:
+        description: "PyPI registry URL to publish Python packages to"
+        type: string
+        required: false
+      npm_registry:
+        description: "NPM registry URL to publish NPM packages to"
+        type: string
+        required: false
+      docker_registry:
+        description: "Docker registry to publish Docker images to"
+        type: string
+        required: false
+      cargo_registry:
+        description: "Named crates.io registry to publish Rust crates to (omit for crates.io default)"
+        type: string
+        required: false
+      cargo_path:
+        description: "Path to the Cargo.toml file (if this is a Rust project)"
+        type: string
+        required: false
+      release_provider:
+        description: "Release provider to use (e.g. github)"
+        type: string
+        default: "github"
+
+# Permissions that the job has
+permissions:
+  actions: read
+  contents: write
+  pull-requests: write
+  statuses: read
+
+jobs:
+  update-version:
+    name: update_version
+    uses: ./.github/workflows/update_version_workflow.yml
+    with:
+      cargo_path: ${{ inputs.cargo_path || '' }}
+
+  build_and_publish_rust:
+    name: build_and_publish_rust
+    needs: update-version
+    if: needs.update-version.outputs.publish == 'True' || needs.update-version.outputs.release == 'True'
+    uses: ./.github/workflows/build_and_publish_rust.yml
+    with:
+      semantic_version: ${{ needs.update-version.outputs.semantic-version }}
+      cargo_path: ${{ inputs.cargo_path || 'Cargo.toml' }}
+      build_rust: ${{ needs.update-version.outputs.build_rust }}
+
+  build_and_publish_python:
+    name: build_and_publish_python
+    needs: update-version
+    if: needs.update-version.outputs.publish == 'True' || needs.update-version.outputs.release == 'True'
+    uses: ./.github/workflows/build_and_publish_python.yml
+    with:
+      semantic_version: ${{ needs.update-version.outputs.semantic-version }}
+      pypi_registry: ${{ inputs.pypi_registry || '' }}
+      build_python: ${{ needs.update-version.outputs.build_python }}
+
+  build_and_publish_react:
+    name: build_and_publish_react
+    needs: update-version
+    if: needs.update-version.outputs.publish == 'True' || needs.update-version.outputs.release == 'True'
+    uses: ./.github/workflows/build_and_publish_react.yml
+    with:
+      semantic_version: ${{ needs.update-version.outputs.semantic-version }}
+      npm_registry: ${{ inputs.npm_registry || '' }}
+      build_npm: ${{ needs.update-version.outputs.build_npm }}
+
+  build_and_publish_docker:
+    name: build_and_publish_docker
+    needs: update-version
+    if: needs.update-version.outputs.publish == 'True' || needs.update-version.outputs.release == 'True'
+    uses: ./.github/workflows/build_and_publish_docker.yml
+    with:
+      semantic_version: ${{ needs.update-version.outputs.semantic-version }}
+      docker_registry: ${{ inputs.docker_registry || '' }}
+      build_docker: ${{ needs.update-version.outputs.build_docker }}
+
+  release:
+    name: release
+    needs:
+      - update-version
+      - build_and_publish_rust
+      - build_and_publish_python
+      - build_and_publish_react
+      - build_and_publish_docker
+    if: >-
+      always() &&
+      needs.update-version.outputs.release == 'True' &&
+      !contains(needs.*.result, 'failure') &&
+      !contains(needs.*.result, 'cancelled')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: "v${{ needs.update-version.outputs.semantic-version }}"
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install vega-packaging
+        run: pip install git+https://github.com/vegastyle/vega-packaging.git@v0.6.2
+
+      - name: Download all release artifacts
+        uses: actions/download-artifact@v4
+        with:
+          merge-multiple: true
+          path: bin/
+
+      - name: Create release
+        run: >
+          build_and_publish
+          --no-publish
+          --release
+          --release_provider ${{ inputs.release_provider || 'github' }}
+          ${{ inputs.cargo_registry && format('--cargo_registry {0}', inputs.cargo_registry) || '' }}
+          ${{ inputs.cargo_path && format('--cargo_path {0}', inputs.cargo_path) || '' }}
+          --verbose

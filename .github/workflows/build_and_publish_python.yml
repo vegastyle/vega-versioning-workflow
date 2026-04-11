@@ -1,0 +1,50 @@
+name: Build and Publish Python
+
+on:
+  workflow_call:
+    inputs:
+      semantic_version:
+        description: "Semantic version to checkout and build"
+        type: string
+        required: true
+      pypi_registry:
+        description: "PyPI registry URL to publish to"
+        type: string
+        required: false
+      vega_packaging_ref:
+        description: "vega-packaging git ref to install"
+        type: string
+        default: "v0.7.1"
+      build_python:
+        description: "Whether to build Python artifacts (True/False)"
+        type: string
+        required: true
+
+jobs:
+  build-and-publish-python:
+    name: build_and_publish_python
+    runs-on: ubuntu-latest
+    steps:
+      - name: Early exit if not a Python project
+        if: inputs.build_python != 'True'
+        run: exit 0
+
+      - uses: actions/checkout@v4
+        with:
+          ref: "v${{ inputs.semantic_version }}"
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install vega-packaging
+        run: pip install git+https://github.com/vegastyle/vega-packaging.git@${{ inputs.vega_packaging_ref }}
+
+      - name: Build and publish Python package
+        run: >
+          build_and_publish
+          --publish
+          --no-release
+          ${{ inputs.pypi_registry && format('--pypi_registry {0}', inputs.pypi_registry) || '' }}
+          --verbose

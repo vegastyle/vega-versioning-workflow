@@ -1,0 +1,55 @@
+name: Build and Publish React
+
+on:
+  workflow_call:
+    inputs:
+      semantic_version:
+        description: "Semantic version to checkout and build"
+        type: string
+        required: true
+      npm_registry:
+        description: "NPM registry URL to publish to"
+        type: string
+        required: false
+      vega_packaging_ref:
+        description: "vega-packaging git ref to install"
+        type: string
+        default: "v0.7.1"
+      build_npm:
+        description: "Whether to build NPM artifacts (True/False)"
+        type: string
+        required: true
+
+jobs:
+  build-and-publish-react:
+    name: build_and_publish_react
+    runs-on: ubuntu-latest
+    steps:
+      - name: Early exit if not an NPM project
+        if: inputs.build_npm != 'True'
+        run: exit 0
+
+      - uses: actions/checkout@v4
+        with:
+          ref: "v${{ inputs.semantic_version }}"
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "lts/*"
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install vega-packaging
+        run: pip install git+https://github.com/vegastyle/vega-packaging.git@${{ inputs.vega_packaging_ref }}
+
+      - name: Build and publish NPM package
+        run: >
+          build_and_publish
+          --publish
+          --no-release
+          ${{ inputs.npm_registry && format('--npm_registry {0}', inputs.npm_registry) || '' }}
+          --verbose

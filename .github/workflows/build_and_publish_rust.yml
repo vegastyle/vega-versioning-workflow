@@ -1,0 +1,75 @@
+name: Build and Publish Rust
+
+on:
+  workflow_call:
+    inputs:
+      cargo_path:
+        description: "Path to the Cargo.toml file"
+        type: string
+        default: "Cargo.toml"
+      semantic_version:
+        description: "Semantic version to checkout and build"
+        type: string
+        required: true
+      vega_packaging_ref:
+        description: "vega-packaging git ref to install"
+        type: string
+        default: "v0.7.1"
+      build_rust:
+        description: "Whether to build Rust artifacts (True/False)"
+        type: string
+        required: true
+
+jobs:
+  build-and-publish-rust:
+    name: build_and_publish_rust
+    runs-on: ubuntu-latest
+    steps:
+      - name: Early exit if not a Rust project
+        if: inputs.build_rust != 'True'
+        run: exit 0
+
+      - uses: actions/checkout@v4
+        with:
+          ref: "v${{ inputs.semantic_version }}"
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install vega-packaging
+        run: pip install git+https://github.com/vegastyle/vega-packaging.git@${{ inputs.vega_packaging_ref }}
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install cross-compile dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-aarch64-linux-gnu gcc-mingw-w64-x86-64 musl-tools
+
+      - name: Configure cross-compile linkers
+        run: |
+          mkdir -p .cargo
+          cat >> .cargo/config.toml <<'EOF'
+          [target.aarch64-unknown-linux-gnu]
+          linker = "aarch64-linux-gnu-gcc"
+
+          [target.x86_64-pc-windows-gnu]
+          linker = "x86_64-w64-mingw32-gcc"
+          EOF
+
+      - name: Compile release artifacts
+        run: >
+          build_and_publish
+          --publish
+          --compile_only
+          --cargo_path ${{ inputs.cargo_path }}
+          --verbose
+
+      - name: Upload release binaries artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: rust-release-bins
+          path: bin/
