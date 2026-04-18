@@ -15,8 +15,8 @@ on:
         description: "vega-packaging git ref to install"
         type: string
         default: "v0.7.1"
-      build_rust:
-        description: "Whether to build Rust artifacts (True/False)"
+      build:
+        description: "Colon-delimited build types (e.g., python:npm:rust:)"
         type: string
         required: true
 
@@ -26,15 +26,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Early exit if not a Rust project
-        if: inputs.build_rust != 'True'
+        if: ${{ !contains(inputs.build, 'rust:') }}
         run: exit 0
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           ref: "v${{ inputs.semantic_version }}"
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.12"
 

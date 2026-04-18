@@ -20,8 +20,28 @@ on:
         description: "Named crates.io registry to publish Rust crates to (omit for crates.io default)"
         type: string
         required: false
+      pyproject_path:
+        description: "Path to the pyproject.toml file (if this is a Python project)"
+        type: string
+        required: false
+      react_package_path:
+        description: "Path to the package.json file (if this is a React/NPM project)"
+        type: string
+        required: false
+      dockerfile_path:
+        description: "Path to the Dockerfile (if this is a Docker project)"
+        type: string
+        required: false
       cargo_path:
         description: "Path to the Cargo.toml file (if this is a Rust project)"
+        type: string
+        required: false
+      tailscale_tags:
+        description: "Tailscale tags for the ephemeral CI node (e.g. tag:ci)"
+        type: string
+        default: "tag:ci"
+      tailscale_ping:
+        description: "Tailscale hostname/IP to ping to verify VPS connectivity (optional)"
         type: string
         required: false
       release_provider:
@@ -41,47 +61,62 @@ jobs:
     name: update_version
     uses: ./.github/workflows/update_version_workflow.yml
     with:
-      cargo_path: ${{ inputs.cargo_path || '' }}
+      pyproject_path: ${{ inputs.pyproject_path || 'pyproject.toml' }}
+      react_package_path: ${{ inputs.react_package_path || 'package.json' }}
+      dockerfile_path: ${{ inputs.dockerfile_path || 'Dockerfile' }}
+      cargo_path: ${{ inputs.cargo_path || 'Cargo.toml' }}
 
   build_and_publish_rust:
     name: build_and_publish_rust
     needs: update-version
-    if: needs.update-version.outputs.publish == 'True' || needs.update-version.outputs.release == 'True'
+    if: contains(needs.update-version.outputs.build, 'rust:') || needs.update-version.outputs.publish == 'True' || needs.update-version.outputs.release == 'True'
     uses: ./.github/workflows/build_and_publish_rust.yml
     with:
       semantic_version: ${{ needs.update-version.outputs.semantic-version }}
       cargo_path: ${{ inputs.cargo_path || 'Cargo.toml' }}
-      build_rust: ${{ needs.update-version.outputs.build_rust }}
+      build: ${{ needs.update-version.outputs.build }}
 
   build_and_publish_python:
     name: build_and_publish_python
     needs: update-version
-    if: needs.update-version.outputs.publish == 'True' || needs.update-version.outputs.release == 'True'
+    if: contains(needs.update-version.outputs.build, 'python:') || needs.update-version.outputs.publish == 'True' || needs.update-version.outputs.release == 'True'
     uses: ./.github/workflows/build_and_publish_python.yml
     with:
       semantic_version: ${{ needs.update-version.outputs.semantic-version }}
       pypi_registry: ${{ inputs.pypi_registry || '' }}
-      build_python: ${{ needs.update-version.outputs.build_python }}
+      build: ${{ needs.update-version.outputs.build }}
+      pyproject_path: ${{ inputs.pyproject_path || 'pyproject.toml' }}
+      tailscale_tags: ${{ inputs.tailscale_tags || 'tag:ci' }}
+      tailscale_ping: ${{ inputs.tailscale_ping || '' }}
+    secrets: inherit
 
   build_and_publish_react:
     name: build_and_publish_react
     needs: update-version
-    if: needs.update-version.outputs.publish == 'True' || needs.update-version.outputs.release == 'True'
+    if: contains(needs.update-version.outputs.build, 'npm:') || needs.update-version.outputs.publish == 'True' || needs.update-version.outputs.release == 'True'
     uses: ./.github/workflows/build_and_publish_react.yml
     with:
       semantic_version: ${{ needs.update-version.outputs.semantic-version }}
       npm_registry: ${{ inputs.npm_registry || '' }}
-      build_npm: ${{ needs.update-version.outputs.build_npm }}
+      build: ${{ needs.update-version.outputs.build }}
+      react_package_path: ${{ inputs.react_package_path || 'package.json' }}
+      tailscale_tags: ${{ inputs.tailscale_tags || 'tag:ci' }}
+      tailscale_ping: ${{ inputs.tailscale_ping || '' }}
+    secrets: inherit
 
   build_and_publish_docker:
     name: build_and_publish_docker
     needs: update-version
-    if: needs.update-version.outputs.publish == 'True' || needs.update-version.outputs.release == 'True'
+    if: contains(needs.update-version.outputs.build, 'docker:') || needs.update-version.outputs.publish == 'True' || needs.update-version.outputs.release == 'True'
     uses: ./.github/workflows/build_and_publish_docker.yml
     with:
       semantic_version: ${{ needs.update-version.outputs.semantic-version }}
       docker_registry: ${{ inputs.docker_registry || '' }}
-      build_docker: ${{ needs.update-version.outputs.build_docker }}
+      build: ${{ needs.update-version.outputs.build }}
+      dockerfile_path: ${{ inputs.dockerfile_path || 'Dockerfile' }}
+      tailscale_tags: ${{ inputs.tailscale_tags || 'tag:ci' }}
+      tailscale_ping: ${{ inputs.tailscale_ping || '' }}
+    secrets: inherit
 
   release:
     name: release
@@ -98,12 +133,12 @@ jobs:
       !contains(needs.*.result, 'cancelled')
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           ref: "v${{ needs.update-version.outputs.semantic-version }}"
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.12"
 
@@ -124,4 +159,7 @@ jobs:
           --release_provider ${{ inputs.release_provider || 'github' }}
           ${{ inputs.cargo_registry && format('--cargo_registry {0}', inputs.cargo_registry) || '' }}
           ${{ inputs.cargo_path && format('--cargo_path {0}', inputs.cargo_path) || '' }}
+          ${{ inputs.pyproject_path && format('--pyproject_path {0}', inputs.pyproject_path) || '' }}
+          ${{ inputs.react_package_path && format('--react_package_path {0}', inputs.react_package_path) || '' }}
+          ${{ inputs.dockerfile_path && format('--dockerfile_path {0}', inputs.dockerfile_path) || '' }}
           --verbose

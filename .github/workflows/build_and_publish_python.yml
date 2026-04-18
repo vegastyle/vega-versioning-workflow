@@ -15,10 +15,26 @@ on:
         description: "vega-packaging git ref to install"
         type: string
         default: "v0.7.1"
-      build_python:
-        description: "Whether to build Python artifacts (True/False)"
+      build:
+        description: "Colon-delimited build types (e.g., python:npm:rust:)"
         type: string
         required: true
+      pyproject_path:
+        description: "Path to the pyproject.toml file"
+        type: string
+        default: "pyproject.toml"
+      tailscale_tags:
+        description: "Tailscale tags for the ephemeral CI node"
+        type: string
+        default: "tag:ci"
+      tailscale_ping:
+        description: "Tailscale hostname/IP to ping before pushing (optional)"
+        type: string
+        required: false
+    secrets:
+      TAILSCALE_AUTHKEY:
+        description: "Tailscale auth key (reusable, ephemeral). If provided, connects to tailnet before registry operations."
+        required: false
 
 jobs:
   build-and-publish-python:
@@ -26,15 +42,23 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Early exit if not a Python project
-        if: inputs.build_python != 'True'
+        if: ${{ !contains(inputs.build, 'python:') }}
         run: exit 0
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           ref: "v${{ inputs.semantic_version }}"
 
+      - name: Connect to Tailscale
+        if: secrets.TAILSCALE_AUTHKEY != ''
+        uses: tailscale/github-action@v4
+        with:
+          authkey: ${{ secrets.TAILSCALE_AUTHKEY }}
+          tags: ${{ inputs.tailscale_tags }}
+          ping: ${{ inputs.tailscale_ping }}
+
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.12"
 
@@ -46,5 +70,6 @@ jobs:
           build_and_publish
           --publish
           --no-release
+          --pyproject_path ${{ inputs.pyproject_path }}
           ${{ inputs.pypi_registry && format('--pypi_registry {0}', inputs.pypi_registry) || '' }}
           --verbose

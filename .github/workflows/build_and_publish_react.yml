@@ -15,10 +15,26 @@ on:
         description: "vega-packaging git ref to install"
         type: string
         default: "v0.7.1"
-      build_npm:
-        description: "Whether to build NPM artifacts (True/False)"
+      build:
+        description: "Colon-delimited build types (e.g., python:npm:rust:)"
         type: string
         required: true
+      react_package_path:
+        description: "Path to the package.json file"
+        type: string
+        default: "package.json"
+      tailscale_tags:
+        description: "Tailscale tags for the ephemeral CI node"
+        type: string
+        default: "tag:ci"
+      tailscale_ping:
+        description: "Tailscale hostname/IP to ping before pushing (optional)"
+        type: string
+        required: false
+    secrets:
+      TAILSCALE_AUTHKEY:
+        description: "Tailscale auth key (reusable, ephemeral). If provided, connects to tailnet before registry operations."
+        required: false
 
 jobs:
   build-and-publish-react:
@@ -26,12 +42,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Early exit if not an NPM project
-        if: inputs.build_npm != 'True'
+        if: ${{ !contains(inputs.build, 'npm:') }}
         run: exit 0
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           ref: "v${{ inputs.semantic_version }}"
+
+      - name: Connect to Tailscale
+        if: secrets.TAILSCALE_AUTHKEY != ''
+        uses: tailscale/github-action@v4
+        with:
+          authkey: ${{ secrets.TAILSCALE_AUTHKEY }}
+          tags: ${{ inputs.tailscale_tags }}
+          ping: ${{ inputs.tailscale_ping }}
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -39,7 +63,7 @@ jobs:
           node-version: "lts/*"
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.12"
 
@@ -51,5 +75,6 @@ jobs:
           build_and_publish
           --publish
           --no-release
+          --react_package_path ${{ inputs.react_package_path }}
           ${{ inputs.npm_registry && format('--npm_registry {0}', inputs.npm_registry) || '' }}
           --verbose
