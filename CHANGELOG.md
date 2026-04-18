@@ -8,6 +8,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 
+## [1.4.2] - 2026/04/18 08:08:41
+
+### Changed
+
+- vega-packaging to version 0.7.2 to resolve incorrect env values for BUILD
+
+
 ## [1.4.1] - 2026/04/18 07:41:13
 
 
