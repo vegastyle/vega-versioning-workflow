@@ -26,14 +26,17 @@ on:
       tailscale_tags:
         description: "Tailscale tags for the ephemeral CI node"
         type: string
-        default: "tag:ci"
+        default: ""
       tailscale_ping:
         description: "Tailscale hostname/IP to ping before pushing (optional)"
         type: string
         required: false
     secrets:
-      TAILSCALE_AUTHKEY:
-        description: "Tailscale auth key (reusable, ephemeral). If provided, connects to tailnet before registry operations."
+      TS_OAUTH_CLIENT_ID:
+        description: "Tailscale OAuth client ID. Required when tailscale_tags is set."
+        required: false
+      TS_OAUTH_SECRET:
+        description: "Tailscale OAuth client secret. Required when tailscale_tags is set."
         required: false
 
 jobs:
@@ -50,10 +53,11 @@ jobs:
           ref: "v${{ inputs.semantic_version }}"
 
       - name: Connect to Tailscale
-        if: secrets.TAILSCALE_AUTHKEY != ''
+        if: inputs.tailscale_tags != ''
         uses: tailscale/github-action@v6
         with:
-          authkey: ${{ secrets.TAILSCALE_AUTHKEY }}
+          oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
+          oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
           tags: ${{ inputs.tailscale_tags }}
           ping: ${{ inputs.tailscale_ping }}
 

@@ -58,7 +58,15 @@ Each language job exits immediately if its `build_*` flag is not `True`, so unus
 | `docker_registry` | No | Docker registry |
 | `cargo_registry` | No | Named crates.io registry |
 | `cargo_path` | No | Path to `Cargo.toml` |
+| `tailscale_tags` | No | Comma-separated Tailscale tags. Leave empty to skip Tailscale entirely. |
+| `tailscale_ping` | No | Optional host/IP list to ping after connecting to Tailscale. |
 | `release_provider` | No | Release provider (`github`, default) |
+
+**Secrets:**
+| Secret | Required | Description |
+|---|---|---|
+| `TS_OAUTH_CLIENT_ID` | Only when `tailscale_tags` is set | Tailscale OAuth client ID |
+| `TS_OAUTH_SECRET` | Only when `tailscale_tags` is set | Tailscale OAuth client secret |
 
 ---
 
@@ -86,6 +94,14 @@ Publishes the Python package to PyPI or a private registry.
 | `semantic_version` | Yes | Version tag to checkout |
 | `pypi_registry` | No | PyPI registry URL |
 | `build_python` | Yes | `True` to run, anything else exits immediately |
+| `tailscale_tags` | No | Comma-separated Tailscale tags. Leave empty to skip Tailscale. |
+| `tailscale_ping` | No | Optional host/IP list to ping after connecting to Tailscale. |
+
+**Secrets:**
+| Secret | Required | Description |
+|---|---|---|
+| `TS_OAUTH_CLIENT_ID` | Only when `tailscale_tags` is set | Tailscale OAuth client ID |
+| `TS_OAUTH_SECRET` | Only when `tailscale_tags` is set | Tailscale OAuth client secret |
 
 ---
 
@@ -98,6 +114,14 @@ Publishes the NPM package to a registry.
 | `semantic_version` | Yes | Version tag to checkout |
 | `npm_registry` | No | NPM registry URL |
 | `build_npm` | Yes | `True` to run, anything else exits immediately |
+| `tailscale_tags` | No | Comma-separated Tailscale tags. Leave empty to skip Tailscale. |
+| `tailscale_ping` | No | Optional host/IP list to ping after connecting to Tailscale. |
+
+**Secrets:**
+| Secret | Required | Description |
+|---|---|---|
+| `TS_OAUTH_CLIENT_ID` | Only when `tailscale_tags` is set | Tailscale OAuth client ID |
+| `TS_OAUTH_SECRET` | Only when `tailscale_tags` is set | Tailscale OAuth client secret |
 
 ---
 
@@ -110,6 +134,14 @@ Builds and pushes a Docker image to a registry.
 | `semantic_version` | Yes | Version tag to checkout |
 | `docker_registry` | No | Docker registry |
 | `build_docker` | Yes | `True` to run, anything else exits immediately |
+| `tailscale_tags` | No | Comma-separated Tailscale tags. Leave empty to skip Tailscale. |
+| `tailscale_ping` | No | Optional host/IP list to ping after connecting to Tailscale. |
+
+**Secrets:**
+| Secret | Required | Description |
+|---|---|---|
+| `TS_OAUTH_CLIENT_ID` | Only when `tailscale_tags` is set | Tailscale OAuth client ID |
+| `TS_OAUTH_SECRET` | Only when `tailscale_tags` is set | Tailscale OAuth client secret |
 
 ---
 
@@ -138,6 +170,11 @@ jobs:
     with:
       cargo_path: Cargo.toml
       pypi_registry: https://pypi.org/simple
+      tailscale_tags: tag:ci
+      tailscale_ping: my-private-host.my-tailnet.ts.net
+    secrets:
+      TS_OAUTH_CLIENT_ID: ${{ secrets.TS_OAUTH_CLIENT_ID }}
+      TS_OAUTH_SECRET: ${{ secrets.TS_OAUTH_SECRET }}
 ```
 
 ### Example: Version bump only (no build/publish)

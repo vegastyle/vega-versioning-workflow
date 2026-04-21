@@ -39,7 +39,7 @@ on:
       tailscale_tags:
         description: "Tailscale tags for the ephemeral CI node (e.g. tag:ci)"
         type: string
-        default: "tag:ci"
+        default: ""
       tailscale_ping:
         description: "Tailscale hostname/IP to ping to verify VPS connectivity (optional)"
         type: string
@@ -48,6 +48,13 @@ on:
         description: "Release provider to use (e.g. github)"
         type: string
         default: "github"
+    secrets:
+      TS_OAUTH_CLIENT_ID:
+        description: "Tailscale OAuth client ID. Required when tailscale_tags is set."
+        required: false
+      TS_OAUTH_SECRET:
+        description: "Tailscale OAuth client secret. Required when tailscale_tags is set."
+        required: false
 
 # Permissions that the job has
 permissions:
@@ -86,9 +93,11 @@ jobs:
       pypi_registry: ${{ inputs.pypi_registry || '' }}
       build: ${{ needs.update-version.outputs.build }}
       pyproject_path: ${{ inputs.pyproject_path || 'pyproject.toml' }}
-      tailscale_tags: ${{ inputs.tailscale_tags || 'tag:ci' }}
+      tailscale_tags: ${{ inputs.tailscale_tags || '' }}
       tailscale_ping: ${{ inputs.tailscale_ping || '' }}
-    secrets: inherit
+    secrets:
+      TS_OAUTH_CLIENT_ID: ${{ secrets.TS_OAUTH_CLIENT_ID }}
+      TS_OAUTH_SECRET: ${{ secrets.TS_OAUTH_SECRET }}
 
   build_and_publish_react:
     name: build_and_publish_react
@@ -100,9 +109,11 @@ jobs:
       npm_registry: ${{ inputs.npm_registry || '' }}
       build: ${{ needs.update-version.outputs.build }}
       react_package_path: ${{ inputs.react_package_path || 'package.json' }}
-      tailscale_tags: ${{ inputs.tailscale_tags || 'tag:ci' }}
+      tailscale_tags: ${{ inputs.tailscale_tags || '' }}
       tailscale_ping: ${{ inputs.tailscale_ping || '' }}
-    secrets: inherit
+    secrets:
+      TS_OAUTH_CLIENT_ID: ${{ secrets.TS_OAUTH_CLIENT_ID }}
+      TS_OAUTH_SECRET: ${{ secrets.TS_OAUTH_SECRET }}
 
   build_and_publish_docker:
     name: build_and_publish_docker
@@ -114,9 +125,11 @@ jobs:
       docker_registry: ${{ inputs.docker_registry || '' }}
       build: ${{ needs.update-version.outputs.build }}
       dockerfile_path: ${{ inputs.dockerfile_path || 'Dockerfile' }}
-      tailscale_tags: ${{ inputs.tailscale_tags || 'tag:ci' }}
+      tailscale_tags: ${{ inputs.tailscale_tags || '' }}
       tailscale_ping: ${{ inputs.tailscale_ping || '' }}
-    secrets: inherit
+    secrets:
+      TS_OAUTH_CLIENT_ID: ${{ secrets.TS_OAUTH_CLIENT_ID }}
+      TS_OAUTH_SECRET: ${{ secrets.TS_OAUTH_SECRET }}
 
   release:
     name: release
