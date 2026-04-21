@@ -8,6 +8,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 
+## [1.5.1] - 2026/04/21 05:43:08
+
+### Changed
+
+- vega packaging version to 0.7.3
+
+
 ## [1.5.0] - 2026/04/21 05:23:32
 
 ### Changed
