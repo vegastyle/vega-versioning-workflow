@@ -14,6 +14,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Excluded branches, tag/deletion pushes, unsupported caller events, and `[#ignore]` pushes do not authorize downstream jobs. The versioning workflow exposes an `eligible` output for consumers.
 
 
+## [1.7.0] - 2026/10/04 16:46:38
+
+### Changed
+
+- update_version_workflow installs vega-packaging v0.8.0, whose uv.lock parser bumps the project's locked version with pyproject.toml, so released Python repos no longer carry a stale uv.lock
+- README notes that uv.lock is kept in step
+
+
 ## [1.6.0] - 2026/10/04 03:36:00
 
 
