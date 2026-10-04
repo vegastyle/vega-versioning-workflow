@@ -1,9 +1,12 @@
 name: Bump, Build, and Publish
 
 on:
-  push:
   workflow_call:
     inputs:
+      allowed_branches:
+        description: "Comma/newline-separated exact branch names; empty uses the caller repository's default branch"
+        type: string
+        default: ""
       pypi_registry:
         description: "PyPI registry URL to publish Python packages to"
         type: string
@@ -68,6 +71,7 @@ jobs:
     name: update_version
     uses: ./.github/workflows/update_version_workflow.yml
     with:
+      allowed_branches: ${{ inputs.allowed_branches || '' }}
       pyproject_path: ${{ inputs.pyproject_path || 'pyproject.toml' }}
       react_package_path: ${{ inputs.react_package_path || 'package.json' }}
       dockerfile_path: ${{ inputs.dockerfile_path || 'Dockerfile' }}
@@ -76,7 +80,7 @@ jobs:
   build_and_publish_rust:
     name: build_and_publish_rust
     needs: update-version
-    if: contains(needs.update-version.outputs.build, 'rust:') || needs.update-version.outputs.publish == 'True' || needs.update-version.outputs.release == 'True'
+    if: needs.update-version.outputs.eligible == 'True' && (contains(needs.update-version.outputs.build, 'rust:') || needs.update-version.outputs.publish == 'True' || needs.update-version.outputs.release == 'True')
     uses: ./.github/workflows/build_and_publish_rust.yml
     with:
       semantic_version: ${{ needs.update-version.outputs.semantic-version }}
@@ -86,7 +90,7 @@ jobs:
   build_and_publish_python:
     name: build_and_publish_python
     needs: update-version
-    if: contains(needs.update-version.outputs.build, 'python:') || needs.update-version.outputs.publish == 'True' || needs.update-version.outputs.release == 'True'
+    if: needs.update-version.outputs.eligible == 'True' && (contains(needs.update-version.outputs.build, 'python:') || needs.update-version.outputs.publish == 'True' || needs.update-version.outputs.release == 'True')
     uses: ./.github/workflows/build_and_publish_python.yml
     with:
       semantic_version: ${{ needs.update-version.outputs.semantic-version }}
@@ -102,7 +106,7 @@ jobs:
   build_and_publish_react:
     name: build_and_publish_react
     needs: update-version
-    if: contains(needs.update-version.outputs.build, 'npm:') || needs.update-version.outputs.publish == 'True' || needs.update-version.outputs.release == 'True'
+    if: needs.update-version.outputs.eligible == 'True' && (contains(needs.update-version.outputs.build, 'npm:') || needs.update-version.outputs.publish == 'True' || needs.update-version.outputs.release == 'True')
     uses: ./.github/workflows/build_and_publish_react.yml
     with:
       semantic_version: ${{ needs.update-version.outputs.semantic-version }}
@@ -118,7 +122,7 @@ jobs:
   build_and_publish_docker:
     name: build_and_publish_docker
     needs: update-version
-    if: contains(needs.update-version.outputs.build, 'docker:') || needs.update-version.outputs.publish == 'True' || needs.update-version.outputs.release == 'True'
+    if: needs.update-version.outputs.eligible == 'True' && (contains(needs.update-version.outputs.build, 'docker:') || needs.update-version.outputs.publish == 'True' || needs.update-version.outputs.release == 'True')
     uses: ./.github/workflows/build_and_publish_docker.yml
     with:
       semantic_version: ${{ needs.update-version.outputs.semantic-version }}
@@ -141,6 +145,8 @@ jobs:
       - build_and_publish_docker
     if: >-
       always() &&
+      needs.update-version.result == 'success' &&
+      needs.update-version.outputs.eligible == 'True' &&
       needs.update-version.outputs.release == 'True' &&
       !contains(needs.*.result, 'failure') &&
       !contains(needs.*.result, 'cancelled')

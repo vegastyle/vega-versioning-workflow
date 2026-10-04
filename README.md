@@ -21,7 +21,8 @@ A reusable workflow that handles commit message parsing and semantic version upd
 **Outputs:**
 | Output | Description |
 |---|---|
-| `semantic-version` | The new version string (e.g. `1.2.3`) |
+| `eligible` | `True` only after an allowed branch push successfully completes versioning; `False` when excluded, ignored, or unsuccessful. Treat missing outputs as denial too. |
+| `semantic-version` | The new version string (e.g. `1.2.3`); empty when versioning is skipped |
 | `publish` | `True` if `#publish` was in the commit message |
 | `release` | `True` if `#release` was in the commit message |
 | `build_rust` | `True` if a `Cargo.toml` was found and updated |
@@ -32,6 +33,7 @@ A reusable workflow that handles commit message parsing and semantic version upd
 **Inputs:**
 | Input | Required | Description |
 |---|---|---|
+| `allowed_branches` | No | Comma/newline-separated exact branch names. Empty/omitted uses the caller repository's default branch. |
 | `cargo_path` | No | Path to `Cargo.toml` (if Rust project) |
 
 ---
@@ -53,6 +55,7 @@ Each language job exits immediately if its `build_*` flag is not `True`, so unus
 **Inputs:**
 | Input | Required | Description |
 |---|---|---|
+| `allowed_branches` | No | Same branch allowlist policy as the versioning workflow. |
 | `pypi_registry` | No | PyPI registry URL |
 | `npm_registry` | No | NPM registry URL |
 | `docker_registry` | No | Docker registry |
@@ -145,6 +148,31 @@ Builds and pushes a Docker image to a registry.
 
 ---
 
+## Branch Policy
+
+Versioning and the full pipeline process only non-deletion **branch pushes** on the allowlist. Excluded branches get no version calculation, generated-file commit, tag, build, publish, or release, even with `#publish` or `#release`. Tag pushes and callers triggered by pull requests, schedules, or manual dispatch are not supported and are denied. The gate/status jobs still run to report the decision.
+
+- With `allowed_branches` omitted or `""`, the caller repository's default branch is allowed.
+- Set `allowed_branches: main` to enforce **main only**, regardless of the repository's default branch.
+- To opt into multiple branches, use `allowed_branches: "main, release/1.x"` or a YAML block:
+  ```yaml
+  allowed_branches: |
+    main
+    release/1.x
+  ```
+
+Matching is literal and case-sensitive: `mai`, `Main`, and `refs/heads/main` do not match `main`. Surrounding whitespace and blank entries are removed; CRLF is supported. Globs are not expanded. A whitespace/delimiter-only list fails configuration validation rather than allowing everything. Comma-containing branch names cannot be represented in an explicit allowlist; an omitted input still treats the repository's default branch as one literal name.
+
+`@main` in a `uses:` reference selects the workflow implementation, **not** the caller branch being authorized. Reusable workflows use the caller's push context. Custom consumers must require `eligible == 'True'` before starting any tag-dependent jobs; `[#ignore]` in any pushed commit subject/body also prevents versioning and downstream jobs.
+
+All allowed branches share the global `v<version>` tag namespace. Use distinct version lines for multi-branch policies; concurrent runs may still collide. This policy does not serialize or redesign tag allocation.
+
+This repository runs `.github/workflows/versioning_on_push.yml` on pushes to `main`, explicitly passing `allowed_branches: main`. The reusable versioning and full-pipeline workflows do not trigger directly on push, avoiding duplicate version/tag runs. Use `#minor #added` in a commit message to request a minor version bump and changelog entry.
+
+**Behavior change:** non-default branches no longer version or publish unless explicitly allowlisted. Existing tags are not removed, and merged commits are processed normally when pushed to an allowed branch.
+
+---
+
 ## How To Use
 
 Follow the GitHub docs on [calling reusable workflows](https://docs.github.com/en/actions/using-workflows/reusing-workflows#calling-a-reusable-workflow).
@@ -168,6 +196,7 @@ jobs:
   bump-build-and-publish:
     uses: vegastyle/vega-versioning-workflow/.github/workflows/bump_build_and_publish.yml@main
     with:
+      allowed_branches: main
       cargo_path: Cargo.toml
       pypi_registry: https://pypi.org/simple
       tailscale_tags: tag:ci
@@ -193,9 +222,22 @@ permissions:
 jobs:
   update-version:
     uses: vegastyle/vega-versioning-workflow/.github/workflows/update_version_workflow.yml@main
+    with:
+      allowed_branches: main
 ```
 
 ---
+
+## Validation
+
+Run the branch-policy and workflow-guard regression tests locally:
+
+```sh
+python -m pip install -r requirements-test.txt
+python -m unittest discover -s tests -v
+```
+
+Run `actionlint` against `.github/workflows/*.yml` to check Actions syntax. Local tests execute the embedded gate and check explicit job predicates; they do not emulate GitHub's runner scheduling. Before rollout, test the push caller and both reusable entry points in a disposable repository: allowed pushes create tags, excluded/ignored pushes create none, and failed/skipped versioning never starts tag-dependent jobs.
 
 ## Commit Hashtags
 
@@ -206,5 +248,5 @@ jobs:
 | `#patch` | Bump patch version |
 | `#publish` | Trigger build + publish jobs |
 | `#release` | Trigger build + publish + GitHub release creation |
-| `#ignore` | Skip all version bumping and CI for this commit |
+| `[#ignore]` | Skip versioning and downstream jobs for the push when present in any commit subject or body |
 | `#added` / `#removed` / `#changed` / `#fixed` / `#security` | Log changes in CHANGELOG.md |

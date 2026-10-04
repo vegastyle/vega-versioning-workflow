@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Added a single main-only push caller for versioning and removed direct push triggers from the reusable workflows to prevent duplicate tag runs.
+- Versioning and tag-dependent build/publish/release jobs now process only allowed branch pushes. The allowlist defaults to the caller repository's default branch; set `allowed_branches: main` for a main-only policy.
+- Excluded branches, tag/deletion pushes, unsupported caller events, and `[#ignore]` pushes do not authorize downstream jobs. The versioning workflow exposes an `eligible` output for consumers.
+
 
 ## [1.5.1] - 2026/04/21 05:43:08
 
