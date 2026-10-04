@@ -4,7 +4,7 @@
 ## About
 These workflows use the **update_semantic_version** and **build_and_publish** CLI commands from `vega-packaging` to:
 1. Parse commit hashtags (`#patch`, `#minor`, `#major`, `#publish`, `#release`) to determine what to do.
-2. Bump the semantic version in all relevant packaging files and commit the changes.
+2. Bump the semantic version in all relevant packaging files (a `uv.lock` beside `pyproject.toml` is kept in step) and commit the changes.
 3. Build and publish packages for each detected language in parallel.
 4. Create a GitHub release (with cross-compiled Rust binaries attached, if applicable).
 
