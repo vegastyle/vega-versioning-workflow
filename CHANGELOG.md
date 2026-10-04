@@ -14,6 +14,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Excluded branches, tag/deletion pushes, unsupported caller events, and `[#ignore]` pushes do not authorize downstream jobs. The versioning workflow exposes an `eligible` output for consumers.
 
 
+## [1.6.0] - 2026/10/04 03:36:00
+
+
 ## [1.5.1] - 2026/04/21 05:43:08
 
 ### Changed
