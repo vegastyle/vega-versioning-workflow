@@ -1,0 +1,5 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "vega-versioning",
+  "description": "Plugin with skills for creating commit messages for the vega versioning workflows" 
+}
