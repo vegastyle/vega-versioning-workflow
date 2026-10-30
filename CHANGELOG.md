@@ -14,6 +14,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Excluded branches, tag/deletion pushes, unsupported caller events, and `[#ignore]` pushes do not authorize downstream jobs. The versioning workflow exposes an `eligible` output for consumers.
 
 
+## [1.7.1] - 2026/10/30 00:02:31
+
+### Added
+
+- agent skill for creating commit messages
+
+
 ## [1.7.0] - 2026/10/04 16:46:38
 
 ### Changed
